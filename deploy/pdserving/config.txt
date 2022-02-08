@@ -1,0 +1,9 @@
+Name: labelme
+Version: 4.5.9
+Summary: Image Polygonal Annotation with Python
+Home-page: https://github.com/wkentaro/labelme
+Author: Kentaro Wada
+Author-email: www.kentaro.wada@gmail.com
+License: GPLv3
+Location: /Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/site-packages
+Requires: imgviz, matplotlib, numpy, Pillow, PyYAML, qtpy, termcolor

@@ -1,0 +1,255 @@
+/usr/local/lib/python3.7/dist-packages/paddle_serving_server/pipeline/pipeline_server.py:340: YAMLLoadWarning: calling yaml.load() without Loader=... is deprecated, as the default Loader is unsafe. Please read https://msg.pyyaml.org/load for full details.
+  conf = yaml.load(f.read())
+grep: warning: GREP_OPTIONS is deprecated; please use an alias or script
+grep: warning: GREP_OPTIONS is deprecated; please use an alias or script
+2021/06/24 08:41:52 start proxy service
+grep: warning: GREP_OPTIONS is deprecated; please use an alias or script
+I0624 08:41:53.239535  4423 analysis_config.cc:424] use_dlnne_:0
+I0624 08:41:53.239535  4406 analysis_config.cc:424] use_dlnne_:0
+I0624 08:41:53.239588  4396 analysis_config.cc:424] use_dlnne_:0
+I0624 08:41:53.239729  4406 analysis_config.cc:424] use_dlnne_:0
+I0624 08:41:53.239732  4423 analysis_config.cc:424] use_dlnne_:0
+I0624 08:41:53.239744  4406 analysis_config.cc:424] use_dlnne_:0
+I0624 08:41:53.239748  4423 analysis_config.cc:424] use_dlnne_:0
+I0624 08:41:53.239755  4406 analysis_config.cc:424] use_dlnne_:0
+I0624 08:41:53.239759  4423 analysis_config.cc:424] use_dlnne_:0
+I0624 08:41:53.239761  4396 analysis_config.cc:424] use_dlnne_:0
+I0624 08:41:53.239776  4396 analysis_config.cc:424] use_dlnne_:0
+I0624 08:41:53.239787  4396 analysis_config.cc:424] use_dlnne_:0
+W0624 08:41:53.810093  4423 analysis_predictor.cc:674] The one-time configuration of analysis predictor failed, which may be due to native predictor called first and its configurations taken effect.
+I0624 08:41:53.810142  4423 analysis_config.cc:424] use_dlnne_:0
+I0624 08:41:53.810150  4423 analysis_predictor.cc:155] Profiler is deactivated, and no profiling report will be generated.
+[1m[35m--- Running analysis [ir_graph_build_pass][0m
+W0624 08:41:53.830873  4406 analysis_predictor.cc:674] The one-time configuration of analysis predictor failed, which may be due to native predictor called first and its configurations taken effect.
+I0624 08:41:53.830919  4406 analysis_config.cc:424] use_dlnne_:0
+I0624 08:41:53.830927  4406 analysis_predictor.cc:155] Profiler is deactivated, and no profiling report will be generated.
+W0624 08:41:53.831010  4396 analysis_predictor.cc:674] The one-time configuration of analysis predictor failed, which may be due to native predictor called first and its configurations taken effect.
+I0624 08:41:53.831037  4396 analysis_config.cc:424] use_dlnne_:0
+I0624 08:41:53.831045  4396 analysis_predictor.cc:155] Profiler is deactivated, and no profiling report will be generated.
+[1m[35m--- Running analysis [ir_graph_build_pass][0m
+[1m[35m--- Running analysis [ir_graph_clean_pass][0m
+[1m[35m--- Running analysis [ir_analysis_pass][0m
+[1m[35m--- Running analysis [ir_graph_build_pass][0m
+[32m--- Running IR pass [is_test_pass][0m
+[32m--- Running IR pass [simplify_with_basic_ops_pass][0m
+[32m--- Running IR pass [conv_affine_channel_fuse_pass][0m
+[32m--- Running IR pass [conv_eltwiseadd_affine_channel_fuse_pass][0m
+[32m--- Running IR pass [conv_bn_fuse_pass][0m
+I0624 08:41:53.849112  4423 graph_pattern_detector.cc:91] ---  detected 24 subgraphs
+[1m[35m--- Running analysis [ir_graph_clean_pass][0m
+[1m[35m--- Running analysis [ir_analysis_pass][0m
+[32m--- Running IR pass [conv_eltwiseadd_bn_fuse_pass][0m
+[32m--- Running IR pass [embedding_eltwise_layernorm_fuse_pass][0m
+[32m--- Running IR pass [multihead_matmul_fuse_pass_v2][0m
+[32m--- Running IR pass [squeeze2_matmul_fuse_pass][0m
+[32m--- Running IR pass [reshape2_matmul_fuse_pass][0m
+[32m--- Running IR pass [flatten2_matmul_fuse_pass][0m
+[32m--- Running IR pass [map_matmul_to_mul_pass][0m
+[32m--- Running IR pass [fc_fuse_pass][0m
+[32m--- Running IR pass [fc_elementwise_layernorm_fuse_pass][0m
+[32m--- Running IR pass [conv_elementwise_add_act_fuse_pass][0m
+[32m--- Running IR pass [is_test_pass][0m
+[32m--- Running IR pass [simplify_with_basic_ops_pass][0m
+I0624 08:41:53.859304  4423 graph_pattern_detector.cc:91] ---  detected 12 subgraphs
+[32m--- Running IR pass [conv_affine_channel_fuse_pass][0m
+[32m--- Running IR pass [conv_eltwiseadd_affine_channel_fuse_pass][0m
+[32m--- Running IR pass [conv_elementwise_add2_act_fuse_pass][0m
+[1m[35m--- Running analysis [ir_graph_clean_pass][0m
+[1m[35m--- Running analysis [ir_analysis_pass][0m
+I0624 08:41:53.861737  4423 graph_pattern_detector.cc:91] ---  detected 8 subgraphs
+[32m--- Running IR pass [conv_bn_fuse_pass][0m
+[32m--- Running IR pass [conv_elementwise_add_fuse_pass][0m
+I0624 08:41:53.863126  4423 graph_pattern_detector.cc:91] ---  detected 4 subgraphs
+[32m--- Running IR pass [transpose_flatten_concat_fuse_pass][0m
+[32m--- Running IR pass [is_test_pass][0m
+[32m--- Running IR pass [simplify_with_basic_ops_pass][0m
+[32m--- Running IR pass [runtime_context_cache_pass][0m
+[32m--- Running IR pass [conv_affine_channel_fuse_pass][0m
+[32m--- Running IR pass [conv_eltwiseadd_affine_channel_fuse_pass][0m
+[1m[35m--- Running analysis [ir_params_sync_among_devices_pass][0m
+I0624 08:41:53.865012  4423 ir_params_sync_among_devices_pass.cc:45] Sync params from CPU to GPU
+[32m--- Running IR pass [conv_bn_fuse_pass][0m
+I0624 08:41:53.867851  4396 graph_pattern_detector.cc:91] ---  detected 24 subgraphs
+I0624 08:41:53.869163  4406 graph_pattern_detector.cc:91] ---  detected 24 subgraphs
+[32m--- Running IR pass [conv_eltwiseadd_bn_fuse_pass][0m
+[32m--- Running IR pass [embedding_eltwise_layernorm_fuse_pass][0m
+[32m--- Running IR pass [multihead_matmul_fuse_pass_v2][0m
+[32m--- Running IR pass [squeeze2_matmul_fuse_pass][0m
+[32m--- Running IR pass [reshape2_matmul_fuse_pass][0m
+[32m--- Running IR pass [flatten2_matmul_fuse_pass][0m[32m
+--- Running IR pass [conv_eltwiseadd_bn_fuse_pass][0m
+[32m--- Running IR pass [map_matmul_to_mul_pass][0m
+I0624 08:41:53.876121  4396 graph_pattern_detector.cc:91] ---  detected 1 subgraphs
+[32m--- Running IR pass [fc_fuse_pass][0m
+I0624 08:41:53.876847  4396 graph_pattern_detector.cc:91] ---  detected 1 subgraphs
+[32m--- Running IR pass [embedding_eltwise_layernorm_fuse_pass][0m
+[32m--- Running IR pass [fc_elementwise_layernorm_fuse_pass][0m
+[32m--- Running IR pass [multihead_matmul_fuse_pass_v2][0m
+[32m--- Running IR pass [conv_elementwise_add_act_fuse_pass][0m
+[32m--- Running IR pass [squeeze2_matmul_fuse_pass][0m
+[32m--- Running IR pass [reshape2_matmul_fuse_pass][0m
+[32m--- Running IR pass [flatten2_matmul_fuse_pass][0m
+[32m--- Running IR pass [map_matmul_to_mul_pass][0m
+[32m--- Running IR pass [fc_fuse_pass][0m
+[32m--- Running IR pass [fc_elementwise_layernorm_fuse_pass][0m
+[32m--- Running IR pass [conv_elementwise_add_act_fuse_pass][0m
+[1m[35m--- Running analysis [adjust_cudnn_workspace_size_pass][0m
+I0624 08:41:53.880607  4406 graph_pattern_detector.cc:91] ---  detected 12 subgraphs
+I0624 08:41:53.880789  4396 graph_pattern_detector.cc:91] ---  detected 12 subgraphs
+[1m[35m--- Running analysis [inference_op_replace_pass][0m
+[1m[35m--- Running analysis [memory_optimize_pass][0m
+I0624 08:41:53.881443  4423 memory_optimize_pass.cc:199] Cluster name : conv2d_56.tmp_0  size: 409600
+I0624 08:41:53.881451  4423 memory_optimize_pass.cc:199] Cluster name : tmp_0  size: 1638400
+I0624 08:41:53.881454  4423 memory_optimize_pass.cc:199] Cluster name : batch_norm_24.tmp_2  size: 26214400
+I0624 08:41:53.881456  4423 memory_optimize_pass.cc:199] Cluster name : conv2d_transpose_4.tmp_0  size: 26214400
+I0624 08:41:53.881458  4423 memory_optimize_pass.cc:199] Cluster name : elementwise_add_8.tmp_0  size: 26214400
+I0624 08:41:53.881460  4423 memory_optimize_pass.cc:199] Cluster name : relu_0.tmp_0  size: 6553600
+I0624 08:41:53.881462  4423 memory_optimize_pass.cc:199] Cluster name : nearest_interp_v2_5.tmp_0  size: 6553600
+I0624 08:41:53.881464  4423 memory_optimize_pass.cc:199] Cluster name : x  size: 4915200
+[1m[35m--- Running analysis [ir_graph_to_program_pass][0m
+[32m--- Running IR pass [conv_elementwise_add2_act_fuse_pass][0m
+[32m--- Running IR pass [conv_elementwise_add2_act_fuse_pass][0m
+I0624 08:41:53.883061  4406 graph_pattern_detector.cc:91] ---  detected 8 subgraphs
+[32m--- Running IR pass [conv_elementwise_add_fuse_pass][0m
+[32m--- Running IR pass [conv_elementwise_add_fuse_pass][0m
+I0624 08:41:53.884495  4406 graph_pattern_detector.cc:91] ---  detected 4 subgraphs
+[32m--- Running IR pass [transpose_flatten_concat_fuse_pass][0m
+[32m--- Running IR pass [runtime_context_cache_pass][0m
+I0624 08:41:53.885780  4396 graph_pattern_detector.cc:91] ---  detected 30 subgraphs
+[1m[35m--- Running analysis [ir_params_sync_among_devices_pass][0m
+I0624 08:41:53.886380  4406 ir_params_sync_among_devices_pass.cc:45] Sync params from CPU to GPU
+[32m--- Running IR pass [transpose_flatten_concat_fuse_pass][0m
+[32m--- Running IR pass [runtime_context_cache_pass][0m
+[1m[35m--- Running analysis [ir_params_sync_among_devices_pass][0m
+I0624 08:41:53.891880  4396 ir_params_sync_among_devices_pass.cc:45] Sync params from CPU to GPU
+I0624 08:41:53.894013  4423 analysis_predictor.cc:595] ======= optimize end =======
+I0624 08:41:53.894078  4423 naive_executor.cc:98] ---  skip [feed], feed -> x
+I0624 08:41:53.897130  4423 naive_executor.cc:98] ---  skip [batch_norm_24.tmp_2], fetch -> fetch
+[1m[35m--- Running analysis [adjust_cudnn_workspace_size_pass][0m
+[1m[35m--- Running analysis [inference_op_replace_pass][0m
+[1m[35m--- Running analysis [memory_optimize_pass][0m
+[1m[35m--- Running analysis [adjust_cudnn_workspace_size_pass][0m
+[1m[35m--- Running analysis [inference_op_replace_pass][0m
+[1m[35m--- Running analysis [memory_optimize_pass][0m
+I0624 08:41:53.907945  4406 memory_optimize_pass.cc:199] Cluster name : conv2d_56.tmp_0  size: 409600
+I0624 08:41:53.907958  4406 memory_optimize_pass.cc:199] Cluster name : tmp_0  size: 1638400
+I0624 08:41:53.907960  4406 memory_optimize_pass.cc:199] Cluster name : batch_norm_24.tmp_2  size: 26214400
+I0624 08:41:53.907963  4406 memory_optimize_pass.cc:199] Cluster name : conv2d_transpose_4.tmp_0  size: 26214400
+I0624 08:41:53.907964  4406 memory_optimize_pass.cc:199] Cluster name : elementwise_add_8.tmp_0  size: 26214400
+I0624 08:41:53.907966  4406 memory_optimize_pass.cc:199] Cluster name : relu_0.tmp_0  size: 6553600
+I0624 08:41:53.907968  4406 memory_optimize_pass.cc:199] Cluster name : nearest_interp_v2_5.tmp_0  size: 6553600
+I0624 08:41:53.907970  4406 memory_optimize_pass.cc:199] Cluster name : x  size: 4915200
+[1m[35m--- Running analysis [ir_graph_to_program_pass][0m
+I0624 08:41:53.908432  4396 memory_optimize_pass.cc:199] Cluster name : lstm_0._generated_var_0  size: 1
+I0624 08:41:53.908440  4396 memory_optimize_pass.cc:199] Cluster name : save_infer_model/scale_0.tmp_0  size: 842300
+I0624 08:41:53.908443  4396 memory_optimize_pass.cc:199] Cluster name : softmax_0.tmp_0  size: 842300
+I0624 08:41:53.908445  4396 memory_optimize_pass.cc:199] Cluster name : lstm_0.tmp_3  size: 1
+I0624 08:41:53.908447  4396 memory_optimize_pass.cc:199] Cluster name : x  size: 38400
+I0624 08:41:53.908449  4396 memory_optimize_pass.cc:199] Cluster name : lstm_0.tmp_2  size: 768
+I0624 08:41:53.908452  4396 memory_optimize_pass.cc:199] Cluster name : save_infer_model/scale_0.tmp_1  size: 842300
+I0624 08:41:53.908453  4396 memory_optimize_pass.cc:199] Cluster name : batch_norm_9.tmp_2  size: 25600
+I0624 08:41:53.908455  4396 memory_optimize_pass.cc:199] Cluster name : batch_norm_32.tmp_1  size: 1152
+[1m[35m--- Running analysis [ir_graph_to_program_pass][0m
+I0624 08:41:53.925185  4406 analysis_predictor.cc:595] ======= optimize end =======
+I0624 08:41:53.925254  4406 naive_executor.cc:98] ---  skip [feed], feed -> x
+I0624 08:41:53.927558  4406 naive_executor.cc:98] ---  skip [batch_norm_24.tmp_2], fetch -> fetch
+I0624 08:41:53.936780  4396 analysis_predictor.cc:595] ======= optimize end =======
+I0624 08:41:53.939354  4396 naive_executor.cc:98] ---  skip [feed], feed -> x
+I0624 08:41:53.940996  4396 naive_executor.cc:98] ---  skip [save_infer_model/scale_0.tmp_0], fetch -> fetch
+W0624 08:42:02.733718  4406 device_context.cc:404] Please NOTE: device: 0, GPU Compute Capability: 8.6, Driver API Version: 11.2, Runtime API Version: 11.2
+W0624 08:42:02.735224  4406 device_context.cc:422] device: 0, cuDNN Version: 8.1.
+2021-06-24 08:42:04,130 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,130 - ocr_reader - INFO - right is: 215
+2021-06-24 08:42:04,130 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,130 - ocr_reader - INFO - bottom is: 31
+2021-06-24 08:42:04,130 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,130 - ocr_reader - INFO - right is: 252
+2021-06-24 08:42:04,130 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,130 - ocr_reader - INFO - bottom is: 36
+2021-06-24 08:42:04,130 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,130 - ocr_reader - INFO - right is: 93
+2021-06-24 08:42:04,130 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,130 - ocr_reader - INFO - bottom is: 33
+2021-06-24 08:42:04,131 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,131 - ocr_reader - INFO - right is: 144
+2021-06-24 08:42:04,131 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,131 - ocr_reader - INFO - bottom is: 69
+2021-06-24 08:42:04,131 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,131 - ocr_reader - INFO - right is: 171
+2021-06-24 08:42:04,131 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,131 - ocr_reader - INFO - bottom is: 46
+2021-06-24 08:42:04,131 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,131 - ocr_reader - INFO - right is: 136
+2021-06-24 08:42:04,131 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,132 - ocr_reader - INFO - bottom is: 70
+2021-06-24 08:42:04,132 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,132 - ocr_reader - INFO - right is: 38
+2021-06-24 08:42:04,132 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,132 - ocr_reader - INFO - bottom is: 27
+2021-06-24 08:42:04,132 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,132 - ocr_reader - INFO - right is: 142
+2021-06-24 08:42:04,133 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,133 - ocr_reader - INFO - bottom is: 45
+2021-06-24 08:42:04,133 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,133 - ocr_reader - INFO - right is: 137
+2021-06-24 08:42:04,133 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,133 - ocr_reader - INFO - bottom is: 52
+2021-06-24 08:42:04,133 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,133 - ocr_reader - INFO - right is: 146
+2021-06-24 08:42:04,133 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,133 - ocr_reader - INFO - bottom is: 38
+2021-06-24 08:42:04,133 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,133 - ocr_reader - INFO - right is: 100
+2021-06-24 08:42:04,133 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,133 - ocr_reader - INFO - bottom is: 36
+2021-06-24 08:42:04,134 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,134 - ocr_reader - INFO - right is: 50
+2021-06-24 08:42:04,134 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,134 - ocr_reader - INFO - bottom is: 76
+2021-06-24 08:42:04,134 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,135 - ocr_reader - INFO - right is: 72
+2021-06-24 08:42:04,135 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,135 - ocr_reader - INFO - bottom is: 38
+2021-06-24 08:42:04,135 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,135 - ocr_reader - INFO - right is: 164
+2021-06-24 08:42:04,135 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,135 - ocr_reader - INFO - bottom is: 82
+2021-06-24 08:42:04,136 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,136 - ocr_reader - INFO - right is: 120
+2021-06-24 08:42:04,136 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,136 - ocr_reader - INFO - bottom is: 29
+2021-06-24 08:42:04,136 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,136 - ocr_reader - INFO - right is: 70
+2021-06-24 08:42:04,136 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,136 - ocr_reader - INFO - bottom is: 31
+2021-06-24 08:42:04,136 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,136 - ocr_reader - INFO - right is: 78
+2021-06-24 08:42:04,136 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,136 - ocr_reader - INFO - bottom is: 40
+2021-06-24 08:42:04,136 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,136 - ocr_reader - INFO - right is: 169
+2021-06-24 08:42:04,137 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,137 - ocr_reader - INFO - bottom is: 33
+2021-06-24 08:42:04,137 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,137 - ocr_reader - INFO - right is: 153
+2021-06-24 08:42:04,137 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,137 - ocr_reader - INFO - bottom is: 29
+2021-06-24 08:42:04,137 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,137 - ocr_reader - INFO - right is: 98
+2021-06-24 08:42:04,137 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,137 - ocr_reader - INFO - bottom is: 29
+2021-06-24 08:42:04,138 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,138 - ocr_reader - INFO - right is: 73
+2021-06-24 08:42:04,138 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,138 - ocr_reader - INFO - bottom is: 30
+2021-06-24 08:42:04,138 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,138 - ocr_reader - INFO - right is: 321
+2021-06-24 08:42:04,138 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,138 - ocr_reader - INFO - bottom is: 26
+2021-06-24 08:42:04,138 - ocr_reader - INFO - left is: 0
+2021-06-24 08:42:04,138 - ocr_reader - INFO - right is: 219
+2021-06-24 08:42:04,138 - ocr_reader - INFO - top is: 0
+2021-06-24 08:42:04,138 - ocr_reader - INFO - bottom is: 27
+W0624 08:42:04.139808  4396 device_context.cc:404] Please NOTE: device: 0, GPU Compute Capability: 8.6, Driver API Version: 11.2, Runtime API Version: 11.2
+W0624 08:42:04.141176  4396 device_context.cc:422] device: 0, cuDNN Version: 8.1.
+W0624 08:42:05.499773  4396 rnn_op.cu.cc:404] If the memory space of the Input WeightList is not continuous, less efficient calculation will be called. Please call flatten_parameters() to make the input memory continuous.
