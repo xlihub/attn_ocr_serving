@@ -76,10 +76,10 @@ class Maskrcnn_Op(Op):
         self.im_shape = im_shape
         return res, False, None, ""
 
-    def postprocess(self, input_dicts, fetch_dict, log_id):
+    def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
         results = list()
-        bbox_pred = [fetch_dict["save_infer_model/scale_0.tmp_0"], fetch_dict['save_infer_model/scale_0.tmp_0.lod'].tolist()]
-        mask_pred = [fetch_dict["save_infer_model/scale_1.tmp_0"], fetch_dict['save_infer_model/scale_1.tmp_0.lod'].tolist()]
+        mask_pred = [fetch_dict["save_infer_model/scale_0.tmp_0"], fetch_dict['save_infer_model/scale_0.tmp_0.lod'].tolist()]
+        bbox_pred = [fetch_dict["save_infer_model/scale_1.tmp_0"], fetch_dict['save_infer_model/scale_1.tmp_0.lod'].tolist()]
         results.append(bbox_pred)
         results.append(mask_pred)
         res = {'bbox': (results[0][0], offset_to_lengths(results[0][1])), }
@@ -249,7 +249,7 @@ class DetOp(Op):
         return feed_list, False, None, ""
 
 
-    def postprocess(self, input_dicts, fetch_dict, log_id):
+    def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
         if len(fetch_dict) > 0:
             out_list = []
             self.boxes = []
@@ -370,7 +370,7 @@ class RecOp(Op):
                 feed_list.append(feed)
         return feed_list, False, None, ""
 
-    def postprocess(self, input_dicts, fetch_data, log_id):
+    def postprocess(self, input_dicts, fetch_data, data_id, log_id):
         res_list = []
         if len(fetch_data) == 1:
             fetch_data = fetch_data[0]
@@ -527,7 +527,7 @@ class DetChOp(Op):
         _, self.new_h, self.new_w = det_img.shape
         return {"x": det_img[np.newaxis, :].copy()}, False, None, ""
 
-    def postprocess(self, input_dicts, fetch_dict, log_id):
+    def postprocess(self, input_dicts, fetch_dict, data_id, log_id):
         det_out = fetch_dict["save_infer_model/scale_0.tmp_1"]
         ratio_list = [
             float(self.new_h) / self.ori_h, float(self.new_w) / self.ori_w
@@ -601,7 +601,7 @@ class RecChOp(Op):
 
         return feed_list, False, None, ""
 
-    def postprocess(self, input_dicts, fetch_data, log_id):
+    def postprocess(self, input_dicts, fetch_data, data_id, log_id):
         res_list = []
         if isinstance(fetch_data, dict):
             if len(fetch_data) > 0:

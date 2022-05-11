@@ -8,3 +8,5 @@ numpy
 visualdl
 python-Levenshtein
 opencv-contrib-python==4.2.0.32
+pycocotools
+paddlex==1.3.11
