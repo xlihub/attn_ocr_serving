@@ -27,10 +27,8 @@ import cv2
 import sys
 import base64
 # from paddle_serving_app.reader import OCRReader
-from ocr_reader import OCRReader, DetResizeForTest, Maskrcnn_Normalize, ResizeByShort, Padding, Compose, ArrangeMaskRCNN, generate_minibatch, maskrcnn_postprocess, offset_to_lengths
-from paddle_serving_app.reader import Sequential, ResizeByFactor
-from paddle_serving_app.reader import Div, Normalize, Transpose
-from paddle_serving_app.reader import DBPostProcess, FilterBoxes, GetRotateCropImage, SortedBoxes
+from ocr_reader import OCRReader, DetResizeForTest, Maskrcnn_Normalize, ArrangeMaskRCNN, generate_minibatch, maskrcnn_postprocess, offset_to_lengths
+from paddle_serving_app.reader import *
 from PIL import Image
 # from tools.infer.utility import draw_ocr
 import os
@@ -45,9 +43,9 @@ class DrawBoxes:
 
 class Maskrcnn_Op(Op):
     def init_op(self):
-        self.maskrcnn_preprocess = Compose([
-            Maskrcnn_Normalize(), ResizeByShort(), Padding(
-                32), ArrangeMaskRCNN()
+        self.maskrcnn_preprocess = Sequential([
+            Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225], False),
+            Resize((800, 1333)), PadStride(32), Transpose((2, 0, 1))
         ])
         self.threshold = 0.9
         self.bitchsize = 1
@@ -66,13 +64,12 @@ class Maskrcnn_Op(Op):
         batch_data = list()
         batch_data.append(self.maskrcnn_preprocess(image))
         padding_batch = generate_minibatch(batch_data)
-        im = np.array([data[0] for data in padding_batch])
-        im_resize_info = np.array([data[1] for data in padding_batch])
-        im_shape = np.array([data[2] for data in padding_batch])
+        im = padding_batch[0]
+        im_shape = np.array(list(im.shape[1:])).reshape(-1)
         res = dict()
-        res['image'] = im
-        res['im_info'] = im_resize_info
-        res['im_shape'] = im_shape
+        res['im_shape'] = np.array(list(im.shape[1:])).reshape(-1)[np.newaxis, :]
+        res['image'] = im[np.newaxis, :]
+        res['scale_factor'] = np.array([1.0, 1.0]).reshape(-1)[np.newaxis, :]
         self.im_shape = im_shape
         return res, False, None, ""
 

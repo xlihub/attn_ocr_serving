@@ -39,7 +39,7 @@ op:
             model_config: /paddle/maskrcnn_serving_server
 
             #Fetch结果列表，以client_config中fetch_var的alias_name为准
-            fetch_list: ["mask_pred", "multiclass_nms_0.tmp_0"]
+            fetch_list: ["multiclass_nms3_240.tmp_2"]
 
             #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
             devices: "0"

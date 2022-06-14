@@ -1204,3 +1204,5 @@ class OCRReader(object):
         text = self.label_ops.decode(
             preds_idx, preds_prob, is_remove_duplicate=True)
         return text, preds
+
+
