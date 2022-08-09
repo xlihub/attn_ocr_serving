@@ -8,7 +8,7 @@ import paddlex.utils.logging as logging
 
 def visualize_detection(image,
                         result,
-                        threshold=0.5,
+                        threshold=0.1,
                         save_dir='./',
                         color=None):
     """

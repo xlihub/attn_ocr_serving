@@ -49,7 +49,7 @@ class Maskrcnn_Op(Op):
             Maskrcnn_Normalize(), ResizeByShort(), Padding(
                 32), ArrangeMaskRCNN()
         ])
-        self.threshold = 0.9
+        self.threshold = 0.7
         self.bitchsize = 1
         global_config = yaml.load(
             open("/paddle/maskrcnn_serving_server/model.yml", 'rb'), Loader=yaml.Loader)
@@ -97,6 +97,12 @@ class Maskrcnn_Op(Op):
         areas = []
         for dt in np.array(pred):
             cname, bbox, score = dt['category'], dt['bbox'], dt['score']
+            if dt['category'] == 'invoice_sy':
+                self.threshold = 0.1
+            elif dt['category'] == 'invoice_A5' or dt['category'] == 'invoice_A4':
+                self.threshold = 0.3
+            else:
+                self.threshold = 0.5
             if score < self.threshold:
                 continue
             keep_results.append(dt)
@@ -127,6 +133,87 @@ class Maskrcnn_Op(Op):
                     img_crop_show[:, :, ::-1])
                 out_dict = {"im_type": keep_result['category'], "image": img_crop}
                 out_list.append(out_dict)
+                if keep_result['category'] == 'invoice_sk':
+                    img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                    img = img.astype('uint8')
+                    # 先利用二值化去除图片噪声
+                    ret2, image_otsu = cv2.threshold(img, 0, 255, cv2.THRESH_OTSU)
+                    ret, img = cv2.threshold(img, ret2, 255, cv2.THRESH_BINARY)
+                    img2 = img.copy()
+                    img2 = cv2.cvtColor(img2, cv2.COLOR_GRAY2BGR)
+                    img_show2 = img2[..., ::-1]
+                    cv2.imwrite('/paddle/inference_results/sk_output2.jpg', img_show2[:, :, ::-1])
+
+                    contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                    n = len(contours)  # 轮廓的个数
+                    cv_contours = []
+                    for contour in contours:
+                        area = cv2.contourArea(contour)
+                        if area <= 300:
+                            cv_contours.append(contour)
+                        else:
+                            continue
+
+                    cv2.fillPoly(img, cv_contours, (255, 255, 255))
+                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                    img_show = img[..., ::-1]
+                    cv2.imwrite('/paddle/inference_results/sk_output.jpg', img_show[:, :, ::-1])
+                    hight = int(img.shape[0])
+                    width = int(img.shape[1])
+                    dst = img[int(0 * hight):int(0.11 * hight), int(0 * width):int(0.08 * width)]
+                    dst_show = dst[..., ::-1]
+                    cv2.imwrite("/paddle/inference_results/sk_crop.jpg", dst_show[:, :, ::-1])
+                    out_dict = {"im_type": "extra", "ext_key": "INV_NO1", "image": dst}
+                    out_list.append(out_dict)
+                    dst2 = img2[int(0 * hight):int(0.11 * hight), int(0.9 * width):int(0.99 * width)]
+                    dst2_show = dst2[..., ::-1]
+                    cv2.imwrite("/paddle/inference_results/sk_crop2.jpg", dst2_show[:, :, ::-1])
+                    out_dict2 = {"im_type": "extra", "ext_key": "MM", "image": dst2}
+                    out_list.append(out_dict2)
+                if keep_result['category'] == 'invoice_ey':
+                    img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                    img = img.astype('uint8')
+                    # 先利用二值化去除图片噪声
+                    ret2, image_otsu = cv2.threshold(img, 0, 255, cv2.THRESH_OTSU)
+                    ret, img = cv2.threshold(img, ret2 - 100, 255, cv2.THRESH_BINARY)
+
+                    contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                    n = len(contours)  # 轮廓的个数
+                    cv_contours = []
+                    for contour in contours:
+                        area = cv2.contourArea(contour)
+                        if area <= 300:
+                            cv_contours.append(contour)
+                        else:
+                            continue
+
+                    cv2.fillPoly(img, cv_contours, (255, 255, 255))
+                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                    img_show = img[..., ::-1]
+                    cv2.imwrite('/paddle/inference_results/ey_output.jpg', img_show[:, :, ::-1])
+                    hight = int(img.shape[0])
+                    width = int(img.shape[1])
+                    dst = img[int(0.7 * hight):int(0.99 * hight), int(0 * width):int(0.99 * width)]
+                    dst_show = dst[..., ::-1]
+                    cv2.imwrite("/paddle/inference_results/ey_crop.jpg", dst_show[:, :, ::-1])
+                    out_dict = {"im_type": "extra", "ext_key": "INV_NO2", "image": dst}
+                    out_list.append(out_dict)
+                if keep_result['category'] == 'invoice_sy':
+                    img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                    img = img.astype('uint8')
+                    # 先利用二值化去除图片噪声
+                    ret2, image_otsu = cv2.threshold(img, 0, 255, cv2.THRESH_OTSU)
+                    ret, img = cv2.threshold(img, ret2, 255, cv2.THRESH_BINARY)
+                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                    img_show = img[..., ::-1]
+                    cv2.imwrite('/paddle/inference_results/sy_output.jpg', img_show[:, :, ::-1])
+                    hight = int(img.shape[0])
+                    width = int(img.shape[1])
+                    dst = img[int(0.45 * hight):int(0.8 * hight), int(0.1 * width):int(0.48 * width)]
+                    dst_show = dst[..., ::-1]
+                    cv2.imwrite("/paddle/inference_results/sy_crop.jpg", dst_show[:, :, ::-1])
+                    out_dict = {"im_type": "extra", "ext_key": "YYMM", "image": dst}
+                    out_list.append(out_dict)
             return {"list": out_list}, None, ""
         else:
             out_dict = {"im_type": 'unknown'}
@@ -208,7 +295,7 @@ class DetOp(Op):
                         "unclip_ratio": 1.6,
                         "min_size": 3
                     })
-                elif self.im_type == 'zhdx_type2':
+                elif self.im_type == 'zhdx_type2' or self.im_type == 'zhdx_type1':
                     self.det_preprocess = Sequential([
                         DetResizeForTest(resize_long=1500), Div(255),
                         Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
@@ -233,6 +320,124 @@ class DetOp(Op):
                         "max_candidates": 1000,
                         "unclip_ratio": 1.6,
                         "min_size": 3
+                    })
+                elif self.im_type == 'invoice_sy':
+                    self.det_preprocess = Sequential([
+                        DetResizeForTest(resize_long=3000), Div(255),
+                        Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                            (2, 0, 1))
+                    ])
+                    self.post_func = DBPostProcess({
+                        "thresh": 0.3,
+                        "box_thresh": 0.5,
+                        "max_candidates": 1000,
+                        "unclip_ratio": 1.6,
+                        "min_size": 2
+                    })
+                elif self.im_type == 'invoice_ey':
+                    self.det_preprocess = Sequential([
+                        DetResizeForTest(resize_long=1500), Div(255),
+                        Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                            (2, 0, 1))
+                    ])
+                    self.post_func = DBPostProcess({
+                        "thresh": 0.3,
+                        "box_thresh": 0.5,
+                        "max_candidates": 1000,
+                        "unclip_ratio": 1.8,
+                        "min_size": 5
+                    })
+                elif self.im_type == 'invoice_sk':
+                    self.det_preprocess = Sequential([
+                        DetResizeForTest(resize_long=1000), Div(255),
+                        Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                            (2, 0, 1))
+                    ])
+                    self.post_func = DBPostProcess({
+                        "thresh": 0.3,
+                        "box_thresh": 0.5,
+                        "max_candidates": 1000,
+                        "unclip_ratio": 2.0,
+                        "min_size": 1
+                    })
+                elif self.im_type == 'extra':
+                    if boximg["ext_key"] == 'INV_NO1':
+                        self.det_preprocess = Sequential([
+                            DetResizeForTest(resize_long=150), Div(255),
+                            Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                                (2, 0, 1))
+                        ])
+                        self.post_func = DBPostProcess({
+                            "thresh": 0.3,
+                            "box_thresh": 0.5,
+                            "max_candidates": 1000,
+                            "unclip_ratio": 1.6,
+                            "min_size": 1
+                        })
+                    if boximg["ext_key"] == 'INV_NO2':
+                        self.det_preprocess = Sequential([
+                            DetResizeForTest(resize_long=2000), Div(255),
+                            Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                                (2, 0, 1))
+                        ])
+                        self.post_func = DBPostProcess({
+                            "thresh": 0.3,
+                            "box_thresh": 0.5,
+                            "max_candidates": 1000,
+                            "unclip_ratio": 1.8,
+                            "min_size": 1
+                        })
+                    if boximg["ext_key"] == 'YYMM':
+                        self.det_preprocess = Sequential([
+                            DetResizeForTest(resize_long=400), Div(255),
+                            Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                                (2, 0, 1))
+                        ])
+                        self.post_func = DBPostProcess({
+                            "thresh": 0.3,
+                            "box_thresh": 0.5,
+                            "max_candidates": 1000,
+                            "unclip_ratio": 1.8,
+                            "min_size": 1
+                        })
+                    if boximg["ext_key"] == 'MM':
+                        self.det_preprocess = Sequential([
+                            DetResizeForTest(resize_long=200), Div(255),
+                            Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                                (2, 0, 1))
+                        ])
+                        self.post_func = DBPostProcess({
+                            "thresh": 0.3,
+                            "box_thresh": 0.5,
+                            "max_candidates": 1000,
+                            "unclip_ratio": 1.8,
+                            "min_size": 1
+                        })
+                elif self.im_type == 'Power_tw':
+                    self.det_preprocess = Sequential([
+                        DetResizeForTest(resize_long=3000), Div(255),
+                        Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                            (2, 0, 1))
+                    ])
+                    self.post_func = DBPostProcess({
+                        "thresh": 0.3,
+                        "box_thresh": 0.5,
+                        "max_candidates": 1000,
+                        "unclip_ratio": 1.8,
+                        "min_size": 5
+                    })
+                elif self.im_type == 'Water_tw' or self.im_type == 'Water_twc' or self.im_type == 'Water_twz':
+                    self.det_preprocess = Sequential([
+                        DetResizeForTest(resize_long=4000), Div(255),
+                        Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                            (2, 0, 1))
+                    ])
+                    self.post_func = DBPostProcess({
+                        "thresh": 0.3,
+                        "box_thresh": 0.5,
+                        "max_candidates": 1000,
+                        "unclip_ratio": 1.8,
+                        "min_size": 5
                     })
                 elif self.im_type == 'invoice_A5':
                     self.det_preprocess = Sequential([
@@ -261,6 +466,8 @@ class DetOp(Op):
                 dt_boxes_list = self.post_func(det_out, [ratio_list])
                 dt_boxes = self.filter_func(dt_boxes_list[0], [self.im_info_list[i]['ori_h'], self.im_info_list[i]['ori_w']])
                 out_dict = {"dt_boxes": dt_boxes, "image": self.im_list[i]["image"], "im_type": self.im_list[i]["im_type"]}
+                if self.im_list[i]['im_type'] == 'extra':
+                    out_dict['ext_key'] = self.im_list[i]['ext_key']
                 self.boxes.append(dt_boxes)
                 out_list.append(out_dict)
             return {"list": out_list}, None, ""
@@ -306,68 +513,72 @@ class RecOp(Op):
             # im = cv2.imdecode(data, cv2.IMREAD_COLOR)
             dt_boxes = input_dict["dt_boxes"]
             dt_boxes = self.sorted_boxes(dt_boxes)
-            DrawBoxes.list = copy.deepcopy(dt_boxes)
-            self.rec_dict_list.append({"dt_boxes": DrawBoxes.list, "im_type": input_dict["im_type"]})
-            image = self.raw_im[..., ::-1]
-            # cv2.namedWindow('first', cv2.WINDOW_NORMAL)
-            # cv2.imshow('first', image_cv)
-            boxes = DrawBoxes.list
+            if len(dt_boxes) > 0:
+                DrawBoxes.list = copy.deepcopy(dt_boxes)
+                det_dic = {"dt_boxes": DrawBoxes.list, "im_type": input_dict["im_type"]}
+                if input_dict["im_type"] == 'extra':
+                    det_dic['ext_key'] = input_dict['ext_key']
+                self.rec_dict_list.append(det_dic)
+                image = self.raw_im[..., ::-1]
+                # cv2.namedWindow('first', cv2.WINDOW_NORMAL)
+                # cv2.imshow('first', image_cv)
+                boxes = DrawBoxes.list
 
-            draw_img = draw_ocr(
-                image,
-                boxes)
-            draw_img_save = "/paddle/inference_results/"
-            if not os.path.exists(draw_img_save):
-                os.makedirs(draw_img_save)
-            cv2.imwrite(
-                os.path.join(draw_img_save, os.path.basename('result' + str(i) + '.jpg')),
-                draw_img[:, :, ::-1])
-            # DrawBoxes.list = self.sorted_boxes(DrawBoxes.list)
-            img_list = []
-            max_wh_ratio = 0
-            ## Many mini-batchs, the type of feed_data is list.
-            max_batch_size = len(dt_boxes)  # len(dt_boxes)
-
-            # If max_batch_size is 0, skipping predict stage
-            if max_batch_size == 0:
-                return {}, True, None, ""
-            boxes_size = len(dt_boxes)
-            batch_size = boxes_size // max_batch_size
-            rem = boxes_size % max_batch_size
-            for bt_idx in range(0, batch_size + 1):
-                imgs = None
-                boxes_num_in_one_batch = 0
-                if bt_idx == batch_size:
-                    if rem == 0:
-                        continue
-                    else:
-                        boxes_num_in_one_batch = rem
-                elif bt_idx < batch_size:
-                    boxes_num_in_one_batch = max_batch_size
-                else:
-                    _LOGGER.error("batch_size error, bt_idx={}, batch_size={}".
-                                  format(bt_idx, batch_size))
-                    break
-
-                start = bt_idx * max_batch_size
-                end = start + boxes_num_in_one_batch
+                draw_img = draw_ocr(
+                    image,
+                    boxes)
+                draw_img_save = "/paddle/inference_results/"
+                if not os.path.exists(draw_img_save):
+                    os.makedirs(draw_img_save)
+                cv2.imwrite(
+                    os.path.join(draw_img_save, os.path.basename('result' + str(i) + '.jpg')),
+                    draw_img[:, :, ::-1])
+                # DrawBoxes.list = self.sorted_boxes(DrawBoxes.list)
                 img_list = []
-                for box_idx in range(start, end):
-                    boximg = self.get_rotate_crop_image(self.raw_im, dt_boxes[box_idx])
-                    self.ocr_reader.get_sorted_boxes(self.raw_im, dt_boxes[box_idx])
-                    img_list.append(boximg)
-                    h, w = boximg.shape[0:2]
-                    wh_ratio = w * 1.0 / h
-                    max_wh_ratio = max(max_wh_ratio, wh_ratio)
-                _, w, h = self.ocr_reader.resize_norm_img(img_list[0],
-                                                          max_wh_ratio).shape
+                max_wh_ratio = 0
+                ## Many mini-batchs, the type of feed_data is list.
+                max_batch_size = len(dt_boxes)  # len(dt_boxes)
 
-                imgs = np.zeros((boxes_num_in_one_batch, 3, w, h)).astype('float32')
-                for id, img in enumerate(img_list):
-                    norm_img = self.ocr_reader.resize_norm_img(img, max_wh_ratio)
-                    imgs[id] = norm_img
-                feed = {"x": imgs.copy()}
-                feed_list.append(feed)
+                # If max_batch_size is 0, skipping predict stage
+                if max_batch_size == 0:
+                    return {}, True, None, ""
+                boxes_size = len(dt_boxes)
+                batch_size = boxes_size // max_batch_size
+                rem = boxes_size % max_batch_size
+                for bt_idx in range(0, batch_size + 1):
+                    imgs = None
+                    boxes_num_in_one_batch = 0
+                    if bt_idx == batch_size:
+                        if rem == 0:
+                            continue
+                        else:
+                            boxes_num_in_one_batch = rem
+                    elif bt_idx < batch_size:
+                        boxes_num_in_one_batch = max_batch_size
+                    else:
+                        _LOGGER.error("batch_size error, bt_idx={}, batch_size={}".
+                                      format(bt_idx, batch_size))
+                        break
+
+                    start = bt_idx * max_batch_size
+                    end = start + boxes_num_in_one_batch
+                    img_list = []
+                    for box_idx in range(start, end):
+                        boximg = self.get_rotate_crop_image(self.raw_im, dt_boxes[box_idx])
+                        self.ocr_reader.get_sorted_boxes(self.raw_im, dt_boxes[box_idx])
+                        img_list.append(boximg)
+                        h, w = boximg.shape[0:2]
+                        wh_ratio = w * 1.0 / h
+                        max_wh_ratio = max(max_wh_ratio, wh_ratio)
+                    _, w, h = self.ocr_reader.resize_norm_img(img_list[0],
+                                                              max_wh_ratio).shape
+
+                    imgs = np.zeros((boxes_num_in_one_batch, 3, w, h)).astype('float32')
+                    for id, img in enumerate(img_list):
+                        norm_img = self.ocr_reader.resize_norm_img(img, max_wh_ratio)
+                        imgs[id] = norm_img
+                    feed = {"x": imgs.copy()}
+                    feed_list.append(feed)
         return feed_list, False, None, ""
 
     def postprocess(self, input_dicts, fetch_data, data_id, log_id):
@@ -496,6 +707,8 @@ class RecOp(Op):
 
                 res = {"text": str(res_text), "preb": str(res_preb), "boxes": str(res_boxes), "im_type": self.rec_dict_list[i]['im_type']}
                 print(str(res_text))
+                if self.rec_dict_list[i]['im_type'] == 'extra':
+                    res['ext_key'] = self.rec_dict_list[i]['ext_key']
                 res_list.append(res)
             return {'res': str(res_list)}, None, ""
 
