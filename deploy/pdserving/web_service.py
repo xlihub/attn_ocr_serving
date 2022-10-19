@@ -38,7 +38,6 @@ import copy
 
 _LOGGER = logging.getLogger()
 
-
 class DrawBoxes:
     list = []
 
@@ -100,7 +99,7 @@ class Maskrcnn_Op(Op):
             if dt['category'] == 'invoice_sy':
                 self.threshold = 0.1
             elif dt['category'] == 'invoice_A5' or dt['category'] == 'invoice_A4':
-                self.threshold = 0.3
+                self.threshold = 0.5
             else:
                 self.threshold = 0.5
             if score < self.threshold:
@@ -112,8 +111,10 @@ class Maskrcnn_Op(Op):
         keep_results = [keep_results[k]
                         for k in sorted_idxs] if len(keep_results) > 0 else []
         out_list = []
+        mask_list = []
         if len(keep_results) > 0:
             for i, keep_result in enumerate(keep_results):
+                mask_list.append({'box': keep_result['bbox'], 'type': keep_result['category']})
                 top = int(keep_result['bbox'][1])
                 bottom = int(keep_result['bbox'][1]) + int(keep_result['bbox'][3])
                 left = int(keep_result['bbox'][0])
@@ -131,7 +132,43 @@ class Maskrcnn_Op(Op):
                 cv2.imwrite(
                     os.path.join(draw_img_save, os.path.basename('maskrcnn' + str(i) + '.jpg')),
                     img_crop_show[:, :, ::-1])
-                out_dict = {"im_type": keep_result['category'], "image": img_crop}
+                # 前处理invoice_A4与invoice_A5的图片，去除表格竖线
+                if keep_result['category'] == 'invoice_A5' or keep_result['category'] == 'invoice_A4':
+                    cv2.imwrite(
+                        os.path.join(draw_img_save, os.path.basename('raw_image.jpg')),
+                        img_crop[:, :, ::-1])
+                    img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                    img = img.astype('uint8')
+                    # 二值化
+                    # binary = cv2.adaptiveThreshold(
+                    #    ~img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
+
+                    ret2, image_otsu = cv2.threshold(~img, 0, 255, cv2.THRESH_OTSU)
+                    ret, binary = cv2.threshold(~img, ret2, 255, cv2.THRESH_BINARY)
+                    # 开运算-去除白点
+                    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 1))
+                    binary_of_open = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel)
+                    # 闭运算-加强虚线
+                    kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 40))
+                    binary_of_close = cv2.morphologyEx(binary_of_open, cv2.MORPH_CLOSE, kernel2)
+                    # 找线
+                    src_copy = binary_of_close
+                    scale = 50
+                    kernel3 = cv2.getStructuringElement(
+                        cv2.MORPH_RECT, (1, int(src_copy.shape[0] / scale)))
+                    erorsion_img = cv2.erode(src_copy, kernel3, (-1, -1))
+                    erorsion_img = cv2.dilate(erorsion_img, kernel3, (-1, -1))
+                    contours, _ = cv2.findContours(
+                        image=erorsion_img, mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE)
+                    for i in contours:
+                        x, y, w, h = cv2.boundingRect(i)
+                        if h >= 800 and w <= 20:
+                            cv2.rectangle(img, (x, y), (x + w, y + h), (255, 255, 255), -1)
+                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                    img_crop = img
+                    img_show = img[..., ::-1]
+                    cv2.imwrite('/paddle/inference_results/dotted_line.jpg', img_show[:, :, ::-1])
+                out_dict = {"im_type": keep_result['category'], "image": img_crop, "mask_list": mask_list}
                 out_list.append(out_dict)
                 if keep_result['category'] == 'invoice_sk':
                     img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
@@ -413,6 +450,19 @@ class DetOp(Op):
                             "unclip_ratio": 1.8,
                             "min_size": 1
                         })
+                    if boximg["ext_key"] == 'dotted_line':
+                        self.det_preprocess = Sequential([
+                            DetResizeForTest(resize_long=1200), Div(255),
+                            Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                                (2, 0, 1))
+                        ])
+                        self.post_func = DBPostProcess({
+                            "thresh": 0.3,
+                            "box_thresh": 0.5,
+                            "max_candidates": 1000,
+                            "unclip_ratio": 1.8,
+                            "min_size": 1
+                        })
                 elif self.im_type == 'Power_tw':
                     self.det_preprocess = Sequential([
                         DetResizeForTest(resize_long=3000), Div(255),
@@ -445,6 +495,12 @@ class DetOp(Op):
                         Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
                             (2, 0, 1))
                     ])
+                elif self.im_type == 'invoice_A4':
+                    self.det_preprocess = Sequential([
+                        DetResizeForTest(resize_long=2500), Div(255),
+                        Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                            (2, 0, 1))
+                    ])
                 det_img = self.det_preprocess(im)
                 _, self.new_h, self.new_w = det_img.shape
                 self.im_info_list.append(
@@ -468,6 +524,8 @@ class DetOp(Op):
                 out_dict = {"dt_boxes": dt_boxes, "image": self.im_list[i]["image"], "im_type": self.im_list[i]["im_type"]}
                 if self.im_list[i]['im_type'] == 'extra':
                     out_dict['ext_key'] = self.im_list[i]['ext_key']
+                else:
+                    out_dict['mask_list'] = self.im_list[i]['mask_list']
                 self.boxes.append(dt_boxes)
                 out_list.append(out_dict)
             return {"list": out_list}, None, ""
@@ -507,7 +565,6 @@ class RecOp(Op):
         feed_list = []
         self.rec_dict_list = []
         for i, input_dict in enumerate(dict):
-            self.raw_im = input_dict["image"]
             self.im_type = input_dict["im_type"]
             # data = np.frombuffer(self.raw_im, np.uint8)
             # im = cv2.imdecode(data, cv2.IMREAD_COLOR)
@@ -518,6 +575,10 @@ class RecOp(Op):
                 det_dic = {"dt_boxes": DrawBoxes.list, "im_type": input_dict["im_type"]}
                 if input_dict["im_type"] == 'extra':
                     det_dic['ext_key'] = input_dict['ext_key']
+                else:
+                    self.raw_im = input_dict["image"]
+                    self.mask_list = input_dict["mask_list"]
+                    det_dic['mask_list'] = input_dict["mask_list"]
                 self.rec_dict_list.append(det_dic)
                 image = self.raw_im[..., ::-1]
                 # cv2.namedWindow('first', cv2.WINDOW_NORMAL)
@@ -532,7 +593,7 @@ class RecOp(Op):
                     os.makedirs(draw_img_save)
                 cv2.imwrite(
                     os.path.join(draw_img_save, os.path.basename('result' + str(i) + '.jpg')),
-                    draw_img[:, :, ::-1])
+                    image[:, :, ::-1])
                 # DrawBoxes.list = self.sorted_boxes(DrawBoxes.list)
                 img_list = []
                 max_wh_ratio = 0
@@ -589,7 +650,7 @@ class RecOp(Op):
             text_list = []
             preb_list = []
             if len(fetch_data) > 0:
-                text, preb = self.ocr_reader.postprocess(
+                text, preb, score = self.ocr_reader.postprocess(
                     fetch_data, with_score=True)
                 # for res in rec_batch_res:
                    # res_list.append(res)
@@ -609,10 +670,15 @@ class RecOp(Op):
                 cv2.imwrite(
                     os.path.join(draw_img_save, os.path.basename('result.jpg')),
                     draw_img[:, :, ::-1])
+                if not os.path.exists(draw_img_save + 'raw_image.jpg'):
+                    cv2.imwrite(
+                        os.path.join(draw_img_save, os.path.basename('raw_image.jpg')),
+                        image[:, :, ::-1])
                 res_ob = {"text": text_list, "preb": preb_list, "boxes": DrawBoxes.list}
                 res_text = []
                 res_boxes = []
                 res_preb = []
+                res_score = []
                 for text in text_list:
                     res_text += text
                 for preb in preb_list:
@@ -623,9 +689,16 @@ class RecOp(Op):
                         array_shape = preds_idx.shape
                         array_data_type = preds_idx.dtype.name
                         item_str = preds_idx.tobytes()
-                        new_arr = np.frombuffer(item_str, dtype=array_data_type).reshape(array_shape)
+                        # new_arr = np.frombuffer(item_str, dtype=array_data_type).reshape(array_shape)
                         # item_str = ''.join(np.array2string(item, separator=',', threshold=11e3).splitlines())
                         res_preb.append({'bytes': item_str, 'dtype': array_data_type, 'shape': array_shape})
+                        preds_prob = item.max(axis=1)
+                        prob_array_shape = preds_prob.shape
+                        prob_array_type = preds_prob.dtype.name
+                        prob_str = preds_prob.tobytes()
+                        # new_arr = np.frombuffer(item_str, dtype=array_data_type).reshape(array_shape)
+                        # item_str = ''.join(np.array2string(item, separator=',', threshold=11e3).splitlines())
+                        res_score.append({'bytes': prob_str, 'dtype': prob_array_type, 'shape': prob_array_shape})
                         # preds_idx = item.argmax(axis=1)
                         # preds_prob = item.max(axis=1)
                         # print(preds_idx)
@@ -656,32 +729,22 @@ class RecOp(Op):
                     bb = b1 + b3
                     res_boxes.append(bb)
 
-                res = {"text": str(res_text), "preb": str(res_preb), "boxes": str(res_boxes), "im_type": self.im_type}
+                res = {"text": str(res_text), "preb": str(res_preb), "boxes": str(res_boxes), "im_type": self.im_type, "score": str(score), "raw_score": str(res_score), "mask_list": str(self.mask_list[0])}
                 print(str(res_text))
                 return res, None, ""
         elif isinstance(fetch_data, list):
             for i, one_batch in enumerate(fetch_data):
                 text_list = []
                 preb_list = []
-                text, preb = self.ocr_reader.postprocess(
+                text, preb, score = self.ocr_reader.postprocess(
                     one_batch, with_score=True)
                 # for res in one_batch_res:
                 text_list.append(text)
                 preb_list.append(preb)
-                image = self.raw_im[..., ::-1]
                 # cv2.namedWindow('first', cv2.WINDOW_NORMAL)
                 # cv2.imshow('first', image_cv)
                 boxes = DrawBoxes.list
 
-                draw_img = draw_ocr(
-                    image,
-                    boxes)
-                draw_img_save = "/paddle/inference_results/"
-                if not os.path.exists(draw_img_save):
-                    os.makedirs(draw_img_save)
-                cv2.imwrite(
-                    os.path.join(draw_img_save, os.path.basename('result.jpg')),
-                    draw_img[:, :, ::-1])
                 res_ob = {"text": text_list, "preb": preb_list, "boxes": DrawBoxes.list}
                 res_text = []
                 res_boxes = []
@@ -705,10 +768,25 @@ class RecOp(Op):
                     bb = b1 + b3
                     res_boxes.append(bb)
 
-                res = {"text": str(res_text), "preb": str(res_preb), "boxes": str(res_boxes), "im_type": self.rec_dict_list[i]['im_type']}
+                res = {"text": str(res_text), "preb": str(res_preb), "boxes": str(res_boxes), "im_type": self.rec_dict_list[i]['im_type'], "score": str(score)}
                 print(str(res_text))
                 if self.rec_dict_list[i]['im_type'] == 'extra':
                     res['ext_key'] = self.rec_dict_list[i]['ext_key']
+                else:
+                    res['mask_list'] = str(self.rec_dict_list[i]['mask_list'])
+                    image = self.raw_im[..., ::-1]
+                    draw_img = draw_ocr(
+                        image,
+                        boxes)
+                    draw_img_save = "/paddle/inference_results/"
+                    if not os.path.exists(draw_img_save):
+                        os.makedirs(draw_img_save)
+                    cv2.imwrite(
+                        os.path.join(draw_img_save, os.path.basename('result.jpg')),
+                        draw_img[:, :, ::-1])
+                    cv2.imwrite(
+                        os.path.join(draw_img_save, os.path.basename('raw_image.jpg')),
+                        image[:, :, ::-1])
                 res_list.append(res)
             return {'res': str(res_list)}, None, ""
 

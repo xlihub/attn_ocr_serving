@@ -926,6 +926,7 @@ class BaseRecLabelDecode(object):
     def decode(self, text_index, text_prob=None, is_remove_duplicate=False):
         """ convert text-index into text-label. """
         result_list = []
+        score_list = []
         ignored_tokens = self.get_ignored_tokens()
         batch_size = len(text_index)
         for batch_idx in range(batch_size):
@@ -947,7 +948,8 @@ class BaseRecLabelDecode(object):
                     conf_list.append(1)
             text = ''.join(char_list)
             result_list.append((text))
-        return result_list
+            score_list.append(conf_list)
+        return result_list, score_list
 
     def get_ignored_tokens(self):
         return [0]  # for ctc blank
@@ -1201,8 +1203,8 @@ class OCRReader(object):
             pass
         preds_idx = preds.argmax(axis=2)
         preds_prob = preds.max(axis=2)
-        text = self.label_ops.decode(
+        text, score = self.label_ops.decode(
             preds_idx, preds_prob, is_remove_duplicate=True)
-        return text, preds
+        return text, preds, score
 
 

@@ -46,6 +46,9 @@ op:
 
             ir_optim: True
 
+            #显存内存优化开关, 默认False
+            mem_optim: True
+
             use_trt: True
     det:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
@@ -67,6 +70,9 @@ op:
             devices: "0"
             
             ir_optim: True
+
+            #显存内存优化开关, 默认False
+            mem_optim: True
 
             use_trt: True
     rec:
@@ -96,5 +102,8 @@ op:
             devices: "0"
             
             ir_optim: True
+
+            #显存内存优化开关, 默认False
+            mem_optim: True
 
             use_trt: True

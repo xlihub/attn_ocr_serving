@@ -218,3 +218,38 @@ def draw_bbox_mask(image, results, threshold=0.5, color_map=None):
     visualized_image = visualized_image.astype("uint8")
 
     return visualized_image
+
+
+def dotted_line(image):
+    # 灰度图
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # 二值化
+    binary = cv2.adaptiveThreshold(
+        ~gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, -2)
+
+    # 开运算-去除白点
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    binary_of_open = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel)
+
+    # 闭运算-加强虚线
+    kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 50))
+    binary_of_close = cv2.morphologyEx(binary_of_open, cv2.MORPH_CLOSE, kernel2)
+
+    # 找线
+    src_copy = binary_of_close
+    scale = 50
+    kernel3 = cv2.getStructuringElement(
+        cv2.MORPH_RECT, (1, int(src_copy.shape[0] / scale)))
+
+    erorsion_img = cv2.erode(src_copy, kernel3, (-1, -1))
+    erorsion_img = cv2.dilate(erorsion_img, kernel3, (-1, -1))
+
+    contours, _ = cv2.findContours(
+        image=erorsion_img, mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE)
+
+    for i in contours:
+        x, y, w, h = cv2.boundingRect(i)
+        if h >= 450:
+            cv2.rectangle(image, (x, y), (x + w, y + h), (255, 255, 255), -1)
+    return image
