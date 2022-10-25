@@ -670,10 +670,10 @@ class RecOp(Op):
                 cv2.imwrite(
                     os.path.join(draw_img_save, os.path.basename('result.jpg')),
                     draw_img[:, :, ::-1])
-                if not os.path.exists(draw_img_save + 'raw_image.jpg'):
-                    cv2.imwrite(
-                        os.path.join(draw_img_save, os.path.basename('raw_image.jpg')),
-                        image[:, :, ::-1])
+                # if not os.path.exists(draw_img_save + 'raw_image.jpg'):
+                cv2.imwrite(
+                    os.path.join(draw_img_save, os.path.basename('raw_image.jpg')),
+                    image[:, :, ::-1])
                 res_ob = {"text": text_list, "preb": preb_list, "boxes": DrawBoxes.list}
                 res_text = []
                 res_boxes = []
