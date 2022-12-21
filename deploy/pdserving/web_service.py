@@ -749,6 +749,7 @@ class RecOp(Op):
                 res_text = []
                 res_boxes = []
                 res_preb = []
+                res_score = []
                 for text in text_list:
                     res_text += text
                 for preb in preb_list:
@@ -762,13 +763,20 @@ class RecOp(Op):
                         new_arr = np.frombuffer(item_str, dtype=array_data_type).reshape(array_shape)
                         # item_str = ''.join(np.array2string(item, separator=',', threshold=11e3).splitlines())
                         res_preb.append({'bytes': item_str, 'dtype': array_data_type, 'shape': array_shape})
+                        preds_prob = item.max(axis=1)
+                        prob_array_shape = preds_prob.shape
+                        prob_array_type = preds_prob.dtype.name
+                        prob_str = preds_prob.tobytes()
+                        # new_arr = np.frombuffer(item_str, dtype=array_data_type).reshape(array_shape)
+                        # item_str = ''.join(np.array2string(item, separator=',', threshold=11e3).splitlines())
+                        res_score.append({'bytes': prob_str, 'dtype': prob_array_type, 'shape': prob_array_shape})
                 for boxes in self.rec_dict_list[i]['dt_boxes']:
                     b1 = boxes[0].tolist()
                     b3 = boxes[2].tolist()
                     bb = b1 + b3
                     res_boxes.append(bb)
 
-                res = {"text": str(res_text), "preb": str(res_preb), "boxes": str(res_boxes), "im_type": self.rec_dict_list[i]['im_type'], "score": str(score)}
+                res = {"text": str(res_text), "preb": str(res_preb), "boxes": str(res_boxes), "im_type": self.rec_dict_list[i]['im_type'], "score": str(score), "raw_score": str(res_score)}
                 print(str(res_text))
                 if self.rec_dict_list[i]['im_type'] == 'extra':
                     res['ext_key'] = self.rec_dict_list[i]['ext_key']
