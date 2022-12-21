@@ -524,6 +524,15 @@ class DetOp(Op):
                 out_dict = {"dt_boxes": dt_boxes, "image": self.im_list[i]["image"], "im_type": self.im_list[i]["im_type"]}
                 if self.im_list[i]['im_type'] == 'extra':
                     out_dict['ext_key'] = self.im_list[i]['ext_key']
+                    draw_img = draw_ocr(
+                        self.im_list[i]["image"],
+                        dt_boxes)
+                    draw_img_save = "/paddle/inference_results/"
+                    if not os.path.exists(draw_img_save):
+                        os.makedirs(draw_img_save)
+                    cv2.imwrite(
+                        '/paddle/inference_results/extra_result.jpg',
+                        draw_img[:, :, ::-1])
                 else:
                     out_dict['mask_list'] = self.im_list[i]['mask_list']
                 self.boxes.append(dt_boxes)
@@ -579,6 +588,7 @@ class RecOp(Op):
                     self.raw_im = input_dict["image"]
                     self.mask_list = input_dict["mask_list"]
                     det_dic['mask_list'] = input_dict["mask_list"]
+                rec_img = input_dict["image"]
                 self.rec_dict_list.append(det_dic)
                 image = self.raw_im[..., ::-1]
                 # cv2.namedWindow('first', cv2.WINDOW_NORMAL)
@@ -625,8 +635,8 @@ class RecOp(Op):
                     end = start + boxes_num_in_one_batch
                     img_list = []
                     for box_idx in range(start, end):
-                        boximg = self.get_rotate_crop_image(self.raw_im, dt_boxes[box_idx])
-                        self.ocr_reader.get_sorted_boxes(self.raw_im, dt_boxes[box_idx])
+                        boximg = self.get_rotate_crop_image(rec_img, dt_boxes[box_idx])
+                        self.ocr_reader.get_sorted_boxes(rec_img, dt_boxes[box_idx])
                         img_list.append(boximg)
                         h, w = boximg.shape[0:2]
                         wh_ratio = w * 1.0 / h
