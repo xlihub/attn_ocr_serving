@@ -175,11 +175,14 @@ class Maskrcnn_Op(Op):
                     img = img.astype('uint8')
                     # 先利用二值化去除图片噪声
                     ret2, image_otsu = cv2.threshold(img, 0, 255, cv2.THRESH_OTSU)
-                    ret, img = cv2.threshold(img, ret2, 255, cv2.THRESH_BINARY)
-                    img2 = img.copy()
+                    ret, binary1 = cv2.threshold(img, ret2, 255, cv2.THRESH_BINARY)
+                    img2 = binary1.copy()
                     img2 = cv2.cvtColor(img2, cv2.COLOR_GRAY2BGR)
                     img_show2 = img2[..., ::-1]
                     cv2.imwrite('/paddle/inference_results/sk_output2.jpg', img_show2[:, :, ::-1])
+                    ret40, binary2 = cv2.threshold(img, ret2 + 40, 255, cv2.THRESH_BINARY)
+                    img3 = binary2.copy()
+                    img3 = cv2.cvtColor(img3, cv2.COLOR_GRAY2BGR)
 
                     contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
                     n = len(contours)  # 轮廓的个数
@@ -207,6 +210,16 @@ class Maskrcnn_Op(Op):
                     cv2.imwrite("/paddle/inference_results/sk_crop2.jpg", dst2_show[:, :, ::-1])
                     out_dict2 = {"im_type": "extra", "ext_key": "MM", "image": dst2}
                     out_list.append(out_dict2)
+                    dst3 = img2[int(0.55 * hight):int(0.95 * hight), int(0.65 * width):int(0.95 * width)]
+                    dst3_show = dst3[..., ::-1]
+                    cv2.imwrite("/paddle/inference_results/sk_crop3.jpg", dst3_show[:, :, ::-1])
+                    out_dict3 = {"im_type": "extra", "ext_key": "SK_S_UNINO", "image": dst3}
+                    out_list.append(out_dict3)
+                    dst4 = img3[int(0.55 * hight):int(0.95 * hight), int(0.65 * width):int(0.95 * width)]
+                    dst4_show = dst4[..., ::-1]
+                    cv2.imwrite("/paddle/inference_results/sk_crop4.jpg", dst4_show[:, :, ::-1])
+                    out_dict4 = {"im_type": "extra", "ext_key": "SK_S_UNINO_2", "image": dst4}
+                    out_list.append(out_dict4)
                 if keep_result['category'] == 'invoice_ey':
                     img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
                     img = img.astype('uint8')
@@ -246,11 +259,21 @@ class Maskrcnn_Op(Op):
                     cv2.imwrite('/paddle/inference_results/sy_output.jpg', img_show[:, :, ::-1])
                     hight = int(img.shape[0])
                     width = int(img.shape[1])
-                    dst = img[int(0.45 * hight):int(0.8 * hight), int(0.1 * width):int(0.48 * width)]
+                    dst = img[int(0.2 * hight):int(0.3 * hight), int(0.1 * width):int(0.48 * width)]
                     dst_show = dst[..., ::-1]
                     cv2.imwrite("/paddle/inference_results/sy_crop.jpg", dst_show[:, :, ::-1])
                     out_dict = {"im_type": "extra", "ext_key": "YYMM", "image": dst}
                     out_list.append(out_dict)
+                    dst2 = img[int(0.15 * hight):int(0.35 * hight), int(0.45 * width):int(0.6 * width)]
+                    dst2_show = dst2[..., ::-1]
+                    cv2.imwrite("/paddle/inference_results/sy_crop2.jpg", dst2_show[:, :, ::-1])
+                    out_dict2 = {"im_type": "extra", "ext_key": "SY_NO1", "image": dst2}
+                    out_list.append(out_dict2)
+                    dst3 = img[int(0.15 * hight):int(0.35 * hight), int(0.55 * width):int(0.9 * width)]
+                    dst3_show = dst3[..., ::-1]
+                    cv2.imwrite("/paddle/inference_results/sy_crop3.jpg", dst3_show[:, :, ::-1])
+                    out_dict3 = {"im_type": "extra", "ext_key": "SY_NO2", "image": dst3}
+                    out_list.append(out_dict3)
             return {"list": out_list}, None, ""
         else:
             out_dict = {"im_type": 'unknown'}
@@ -411,9 +434,48 @@ class DetOp(Op):
                             "unclip_ratio": 1.6,
                             "min_size": 1
                         })
+                    if boximg["ext_key"] == 'SK_S_UNINO' or boximg["ext_key"] == 'SK_S_UNINO_2':
+                        self.det_preprocess = Sequential([
+                            DetResizeForTest(resize_long=1500), Div(255),
+                            Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                                (2, 0, 1))
+                        ])
+                        self.post_func = DBPostProcess({
+                            "thresh": 0.3,
+                            "box_thresh": 0.5,
+                            "max_candidates": 1000,
+                            "unclip_ratio": 1.8,
+                            "min_size": 1
+                        })
                     if boximg["ext_key"] == 'INV_NO2':
                         self.det_preprocess = Sequential([
                             DetResizeForTest(resize_long=2000), Div(255),
+                            Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                                (2, 0, 1))
+                        ])
+                        self.post_func = DBPostProcess({
+                            "thresh": 0.3,
+                            "box_thresh": 0.5,
+                            "max_candidates": 1000,
+                            "unclip_ratio": 1.8,
+                            "min_size": 1
+                        })
+                    if boximg["ext_key"] == 'SY_NO1':
+                        self.det_preprocess = Sequential([
+                            DetResizeForTest(resize_long=300), Div(255),
+                            Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                                (2, 0, 1))
+                        ])
+                        self.post_func = DBPostProcess({
+                            "thresh": 0.3,
+                            "box_thresh": 0.5,
+                            "max_candidates": 1000,
+                            "unclip_ratio": 1.8,
+                            "min_size": 1
+                        })
+                    if boximg["ext_key"] == 'SY_NO2':
+                        self.det_preprocess = Sequential([
+                            DetResizeForTest(resize_long=500), Div(255),
                             Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
                                 (2, 0, 1))
                         ])
