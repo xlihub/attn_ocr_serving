@@ -1196,7 +1196,7 @@ class OCRReader(object):
         return rec_res
 
     def postprocess(self, outputs, with_score=False):
-        preds = outputs["save_infer_model/scale_0.tmp_1"]
+        preds = outputs["softmax_0.tmp_0"]
         try:
             preds = preds.numpy()
         except:
