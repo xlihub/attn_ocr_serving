@@ -274,6 +274,33 @@ class Maskrcnn_Op(Op):
                     cv2.imwrite("/paddle/inference_results/sy_crop3.jpg", dst3_show[:, :, ::-1])
                     out_dict3 = {"im_type": "extra", "ext_key": "SY_NO2", "image": dst3}
                     out_list.append(out_dict3)
+                if keep_result['category'] == 'Impo_tw':
+                    width = right - left
+                    hight = bottom - top
+                    if width > 2000 and width/hight > 2:
+                        img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                        img = img.astype('uint8')
+                        B_channel, G_channel, R_channel = cv2.split(img_crop)  # 注意cv2.split()返回通道顺序
+                        # 红色通道阈值(调节好函数阈值为160时效果最好，太大一片白，太小干扰点太多)
+                        _, BlueThresh = cv2.threshold(B_channel, 110, 255, cv2.THRESH_BINARY)
+
+                        # 膨胀操作（可以省略）
+                        element = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+                        erode = cv2.erode(BlueThresh, element)
+                        cv2.imwrite('/paddle/inference_results/impo_output_B.jpg', erode)
+                        gray = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                        img_show = gray[..., ::-1]
+                        cv2.imwrite('/paddle/inference_results/impo_output.jpg', img_show[:, :, ::-1])
+                        hight = int(erode.shape[0])
+                        width = int(erode.shape[1])
+                        dst = erode[int(0 * hight):int(0.2 * hight), int(0.6 * width):int(0.9 * width)]
+                        # adaptiveThresh = cv2.adaptiveThreshold(dst, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,
+                        #                                        35, 90)
+                        dst = cv2.cvtColor(dst, cv2.COLOR_GRAY2BGR)
+                        dst_show = dst[..., ::-1]
+                        cv2.imwrite("/paddle/inference_results/impo_crop.jpg", dst_show[:, :, ::-1])
+                        out_dict = {"im_type": "extra", "ext_key": "IMPO_INV_NO", "image": dst}
+                        out_list.append(out_dict)
             return {"list": out_list}, None, ""
         else:
             out_dict = {"im_type": 'unknown'}
@@ -370,7 +397,7 @@ class DetOp(Op):
                     })
                 elif self.im_type == 'Impo_tw':
                     self.det_preprocess = Sequential([
-                        DetResizeForTest(resize_long=1500), Div(255),
+                        DetResizeForTest(resize_long=2000), Div(255),
                         Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
                             (2, 0, 1))
                     ])
@@ -378,7 +405,7 @@ class DetOp(Op):
                         "thresh": 0.3,
                         "box_thresh": 0.5,
                         "max_candidates": 1000,
-                        "unclip_ratio": 1.6,
+                        "unclip_ratio": 1.8,
                         "min_size": 3
                     })
                 elif self.im_type == 'invoice_sy':
@@ -525,6 +552,19 @@ class DetOp(Op):
                             "unclip_ratio": 1.8,
                             "min_size": 1
                         })
+                    if boximg["ext_key"] == 'IMPO_INV_NO':
+                        self.det_preprocess = Sequential([
+                            DetResizeForTest(resize_long=1000), Div(255),
+                            Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                                (2, 0, 1))
+                        ])
+                        self.post_func = DBPostProcess({
+                            "thresh": 0.3,
+                            "box_thresh": 0.5,
+                            "max_candidates": 1000,
+                            "unclip_ratio": 1.8,
+                            "min_size": 1
+                        })
                 elif self.im_type == 'Power_tw':
                     self.det_preprocess = Sequential([
                         DetResizeForTest(resize_long=3000), Div(255),
@@ -557,6 +597,13 @@ class DetOp(Op):
                         Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
                             (2, 0, 1))
                     ])
+                    self.post_func = DBPostProcess({
+                        "thresh": 0.3,
+                        "box_thresh": 0.5,
+                        "max_candidates": 1000,
+                        "unclip_ratio": 2.0,
+                        "min_size": 5
+                    })
                 elif self.im_type == 'invoice_A4':
                     self.det_preprocess = Sequential([
                         DetResizeForTest(resize_long=2500), Div(255),
