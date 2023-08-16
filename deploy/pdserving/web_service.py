@@ -421,7 +421,7 @@ class DetOp(Op):
                         "unclip_ratio": 1.6,
                         "min_size": 2
                     })
-                elif self.im_type == 'invoice_ey':
+                elif self.im_type == 'invoice_ey' or self.im_type == 'tgddx':
                     self.det_preprocess = Sequential([
                         DetResizeForTest(resize_long=1500), Div(255),
                         Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
