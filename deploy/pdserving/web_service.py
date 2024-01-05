@@ -96,7 +96,7 @@ class Maskrcnn_Op(Op):
         areas = []
         for dt in np.array(pred):
             cname, bbox, score = dt['category'], dt['bbox'], dt['score']
-            if dt['category'] == 'invoice_sy':
+            if dt['category'] == 'invoice_sy' or 'invoice_ey':
                 self.threshold = 0.1
             elif dt['category'] == 'invoice_A5' or dt['category'] == 'invoice_A4':
                 self.threshold = 0.5
@@ -238,7 +238,12 @@ class Maskrcnn_Op(Op):
                             continue
 
                     cv2.fillPoly(img, cv_contours, (255, 255, 255))
-                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                    contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                    n = len(contours)  # 轮廓的个数
+                    if n == 1:
+                        img = img_crop
+                    else:
+                        img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
                     img_show = img[..., ::-1]
                     cv2.imwrite('/paddle/inference_results/ey_output.jpg', img_show[:, :, ::-1])
                     hight = int(img.shape[0])
