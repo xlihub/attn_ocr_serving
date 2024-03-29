@@ -28,7 +28,7 @@ dag:
 op:
     maskrcnn:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
-        concurrency: 1
+        concurrency: 4
 
         #当op配置没有server_endpoints时，从local_service_conf读取本地服务配置
         local_service_conf:
@@ -42,7 +42,7 @@ op:
             fetch_list: ["mask_pred", "multiclass_nms_0.tmp_0"]
 
             #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-            devices: "0"
+            devices: ""
 
             ir_optim: True
 
@@ -50,9 +50,11 @@ op:
             mem_optim: True
 
             use_trt: True
+
+            thread_num: 10
     det:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
-        concurrency: 1
+        concurrency: 4
 
         #当op配置没有server_endpoints时，从local_service_conf读取本地服务配置
         local_service_conf:
@@ -67,7 +69,7 @@ op:
             fetch_list: ["sigmoid_0.tmp_0"]
 
             #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-            devices: "0"
+            devices: ""
             
             ir_optim: True
 
@@ -75,9 +77,11 @@ op:
             mem_optim: True
 
             use_trt: True
+
+            thread_num: 10
     rec:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
-        concurrency: 1
+        concurrency: 2
 
         #超时时间, 单位ms
         timeout: -1
@@ -99,7 +103,7 @@ op:
             fetch_list: ["softmax_0.tmp_0"]
 
             #计算硬件ID，当devices为""或不写时为CPU预测；当devices为"0", "0,1,2"时为GPU预测，表示使用的GPU卡
-            devices: "0"
+            devices: ""
             
             ir_optim: True
 
@@ -107,3 +111,5 @@ op:
             mem_optim: True
 
             use_trt: True
+
+            thread_num: 10

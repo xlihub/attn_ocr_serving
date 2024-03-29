@@ -1,3 +1,4 @@
+# coding: utf-8
 # Copyright (c) 2021 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -572,7 +573,7 @@ class DetOp(Op):
                         })
                 elif self.im_type == 'Power_tw':
                     self.det_preprocess = Sequential([
-                        DetResizeForTest(resize_long=3000), Div(255),
+                        DetResizeForTest(resize_long=1000), Div(255),
                         Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
                             (2, 0, 1))
                     ])
@@ -585,7 +586,7 @@ class DetOp(Op):
                     })
                 elif self.im_type == 'Water_tw' or self.im_type == 'Water_twc' or self.im_type == 'Water_twz':
                     self.det_preprocess = Sequential([
-                        DetResizeForTest(resize_long=4000), Div(255),
+                        DetResizeForTest(resize_long=1000), Div(255),
                         Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
                             (2, 0, 1))
                     ])
