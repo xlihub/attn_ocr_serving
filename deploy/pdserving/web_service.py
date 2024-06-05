@@ -114,6 +114,7 @@ class Maskrcnn_Op(Op):
         out_list = []
         mask_list = []
         if len(keep_results) > 0:
+            keep_results = keep_results[:1]
             for i, keep_result in enumerate(keep_results):
                 mask_list.append({'box': keep_result['bbox'], 'type': keep_result['category']})
                 top = int(keep_result['bbox'][1])

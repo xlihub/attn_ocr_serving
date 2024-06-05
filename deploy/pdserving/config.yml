@@ -21,7 +21,7 @@ dag:
     retry: 10
 
     #使用性能分析, True，生成Timeline性能数据，对性能有一定影响；False为不使用
-    use_profile: True
+    use_profile: False
     
     tracer:
         interval_s: 10
@@ -29,6 +29,9 @@ op:
     maskrcnn:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
         concurrency: 4
+
+        #超时时间, 单位ms
+        timeout: -1
 
         #当op配置没有server_endpoints时，从local_service_conf读取本地服务配置
         local_service_conf:
@@ -55,6 +58,9 @@ op:
     det:
         #并发数，is_thread_op=True时，为线程并发；否则为进程并发
         concurrency: 4
+
+        #超时时间, 单位ms
+        timeout: -1
 
         #当op配置没有server_endpoints时，从local_service_conf读取本地服务配置
         local_service_conf:
