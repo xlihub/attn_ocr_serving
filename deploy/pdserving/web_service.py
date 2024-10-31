@@ -190,7 +190,7 @@ class Maskrcnn_Op(Op):
                     cv_contours = []
                     for contour in contours:
                         area = cv2.contourArea(contour)
-                        if area <= 300:
+                        if area <= 1000:
                             cv_contours.append(contour)
                         else:
                             continue
@@ -201,6 +201,167 @@ class Maskrcnn_Op(Op):
                     cv2.imwrite('/paddle/inference_results/sk_output.jpg', img_show[:, :, ::-1])
                     hight = int(img.shape[0])
                     width = int(img.shape[1])
+
+                    # 统编
+                    crop_1 = img[int(0.15 * hight):int(0.25 * hight), int(0.11 * width):int(0.44 * width)]
+                    img_crop_1 = cv2.cvtColor(crop_1, cv2.COLOR_BGR2GRAY)
+                    img_crop_1 = img_crop_1.astype('uint8')
+                    ret2, image_otsu = cv2.threshold(~img_crop_1, 0, 255, cv2.THRESH_OTSU)
+                    ret, binary = cv2.threshold(~img_crop_1, ret2, 255, cv2.THRESH_BINARY)
+                    # binary_1 = cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
+                    # img_show = binary_1[..., ::-1]
+                    # cv2.imwrite('/paddle/inference_results/binary_1.jpg', img_show[:, :, ::-1])
+
+                    # gray = cv2.cvtColor(crop_1, cv2.COLOR_BGR2GRAY)
+                    # # 此步骤形态学变换的预处理，得到可以查找矩形的图片
+                    # # 参数：输入矩阵、输出矩阵数据类型、设置1、0时差分方向为水平方向的核卷积，设置0、1为垂直方向,ksize：核的尺寸
+                    # sobel = cv2.Sobel(gray, cv2.CV_8U, 0, 1, ksize=3)
+                    # # 二值化
+                    # ret, binary = cv2.threshold(sobel, 0, 255, cv2.THRESH_OTSU + cv2.THRESH_BINARY)
+                    # binary_2 = cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
+                    # img_show = binary_2[..., ::-1]
+                    # cv2.imwrite('/paddle/inference_results/binary_2.jpg', img_show[:, :, ::-1])
+                    #
+                    # # 设置膨胀和腐蚀操作的核函数
+                    # element1 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
+                    # element2 = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
+                    # # 膨胀一次，让轮廓突出
+                    # dilation = cv2.dilate(binary, element2, iterations=1)
+                    # # 腐蚀一次，去掉细节，如表格线等。注意这里去掉的是竖直的线
+                    # erosion = cv2.erode(dilation, element1, iterations=1)
+                    # # aim = cv2.morphologyEx(binary, cv2.MORPH_CLOSE,element1, 1 )   #此函数可实现闭运算和开运算
+                    # # 以上膨胀+腐蚀称为闭运算，具有填充白色区域细小黑色空洞、连接近邻物体的作用
+                    # # 再次膨胀，让轮廓明显一些
+                    # dilation2 = cv2.dilate(erosion, element2, iterations=3)
+                    #  查找和筛选文字区域
+                    region = []
+                    #  查找轮廓
+                    contours, hierarchy = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                    # 利用以上函数可以得到多个轮廓区域，存在一个列表中。
+                    #  筛选那些面积小的
+                    for i in range(len(contours)):
+                        # 遍历所有轮廓
+                        # cnt是一个点集
+                        cnt = contours[i]
+                        # 计算该轮廓的面积
+                        area = cv2.contourArea(cnt)
+                        # 面积小的都筛选掉、这个1000可以按照效果自行设置
+                        if (area < 200):
+                            continue
+                        #     # 将轮廓形状近似到另外一种由更少点组成的轮廓形状，新轮廓的点的数目由我们设定的准确度来决定
+                        #     # 轮廓近似，作用很小
+                        #     # 计算轮廓长度
+                        #     epsilon = 0.001 * cv2.arcLength(cnt, True)
+                        #     #
+                        # #     approx = cv2.approxPolyDP(cnt, epsilon, True)
+                        # 找到最小的矩形，该矩形可能有方向
+                        rect = cv2.minAreaRect(cnt)
+                        # 打印出各个矩形四个点的位置
+                        # print("rect is: ")
+                        # print(rect)
+                        # box是四个点的坐标
+                        box = cv2.boxPoints(rect)
+                        box = np.int0(box)
+                        # 计算高和宽
+                        box_height = abs(box[0][1] - box[2][1])
+                        box_width = abs(box[0][0] - box[2][0])
+                        # 筛选那些太细的矩形，留下扁的
+                        if (box_height > box_width * 1.3):
+                            continue
+                        region.append(box)
+                    # 用绿线画出这些找到的轮廓
+                    # for box in region:
+                    #     cv2.drawContours(crop_1, [box], 0, (255, 255, 255), 2)
+                    # img_show = crop_1[..., ::-1]
+                    # cv2.imwrite('/paddle/inference_results/output_1.jpg', img_show[:, :, ::-1])
+                    dst_show = crop_1[..., ::-1]
+                    cv2.imwrite("/paddle/inference_results/sk_crop_1.jpg", dst_show[:, :, ::-1])
+                    out_dict = {"im_type": "extra", "ext_key": "UNINO", "image": crop_1}
+                    out_list.append(out_dict)
+
+                    # 日期
+                    crop_3 = img[int(0.15 * hight):int(0.25 * hight), int(0.45 * width):int(0.75 * width)]
+                    img_crop_3 = cv2.cvtColor(crop_3, cv2.COLOR_BGR2GRAY)
+                    img_crop_3 = img_crop_3.astype('uint8')
+                    ret2, image_otsu = cv2.threshold(~img_crop_3, 0, 255, cv2.THRESH_OTSU)
+                    ret, binary = cv2.threshold(~img_crop_3, ret2, 255, cv2.THRESH_BINARY)
+                    binary_3 = cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
+                    img_show = binary_3[..., ::-1]
+                    cv2.imwrite('/paddle/inference_results/binary_3.jpg', img_show[:, :, ::-1])
+                    dst_show = crop_3[..., ::-1]
+                    cv2.imwrite("/paddle/inference_results/sk_crop_3.jpg", dst_show[:, :, ::-1])
+                    out_dict = {"im_type": "extra", "ext_key": "MMDD", "image": crop_3}
+                    out_list.append(out_dict)
+
+                    # 未税,税额,总计
+                    crop_2 = img[int(0.62 * hight):int(0.86 * hight), int(0.45 * width):int(0.65 * width)]
+                    dst_show = crop_2[..., ::-1]
+                    cv2.imwrite("/paddle/inference_results/crop_2.jpg", dst_show[:, :, ::-1])
+                    img_crop_2 = cv2.cvtColor(crop_2, cv2.COLOR_BGR2GRAY)
+                    img_crop_2 = img_crop_2.astype('uint8')
+                    ret2, image_otsu = cv2.threshold(~img_crop_2, 0, 255, cv2.THRESH_OTSU)
+                    ret, binary = cv2.threshold(~img_crop_2, ret2, 255, cv2.THRESH_BINARY)
+
+                    #  查找和筛选文字区域
+                    region = []
+                    #  查找轮廓
+                    contours, hierarchy = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                    # 利用以上函数可以得到多个轮廓区域，存在一个列表中。
+                    #  筛选那些面积小的
+                    for i in range(len(contours)):
+                        # 遍历所有轮廓
+                        # cnt是一个点集
+                        cnt = contours[i]
+                        # 计算该轮廓的面积
+                        area = cv2.contourArea(cnt)
+                        # 面积小的都筛选掉、这个1000可以按照效果自行设置
+                        if (area < 10000):
+                            continue
+                        #     # 将轮廓形状近似到另外一种由更少点组成的轮廓形状，新轮廓的点的数目由我们设定的准确度来决定
+                        #     # 轮廓近似，作用很小
+                        #     # 计算轮廓长度
+                        #     epsilon = 0.001 * cv2.arcLength(cnt, True)
+                        #     #
+                        # #     approx = cv2.approxPolyDP(cnt, epsilon, True)
+                        # 找到最小的矩形，该矩形可能有方向
+                        rect = cv2.minAreaRect(cnt)
+                        # 打印出各个矩形四个点的位置
+                        # print("rect is: ")
+                        # print(rect)
+                        # box是四个点的坐标
+                        box = cv2.boxPoints(rect)
+                        box = np.int0(box)
+                        # 计算高和宽
+                        box_height = abs(box[0][1] - box[2][1])
+                        box_width = abs(box[0][0] - box[2][0])
+                        # 筛选那些太细的矩形，留下扁的
+                        if (box_height > box_width * 1.3):
+                            continue
+                        region.append(box)
+                    # 用绿线画出这些找到的轮廓
+                    # for box in region:
+                    #     cv2.drawContours(crop_2, [box], 0, (255, 255, 255), 2)
+                    # img_show = crop_2[..., ::-1]
+                    # cv2.imwrite('/paddle/inference_results/output_2.jpg', img_show[:, :, ::-1])
+                    dst_show = crop_2[..., ::-1]
+                    cv2.imwrite("/paddle/inference_results/sk_crop_2.jpg", dst_show[:, :, ::-1])
+                    out_dict = {"im_type": "extra", "ext_key": "AMTN", "image": crop_2}
+                    out_list.append(out_dict)
+
+                    # # 税额
+                    # crop_3 = img[int(0.7 * hight):int(0.78 * hight), int(0.45 * width):int(0.65 * width)]
+                    # dst_show = crop_3[..., ::-1]
+                    # cv2.imwrite("/paddle/inference_results/sk_crop_3.jpg", dst_show[:, :, ::-1])
+                    # out_dict = {"im_type": "extra", "ext_key": "TAX", "image": crop_3}
+                    # out_list.append(out_dict)
+                    #
+                    # # 总计
+                    # crop_4 = img[int(0.78 * hight):int(0.86 * hight), int(0.45 * width):int(0.65 * width)]
+                    # dst_show = crop_4[..., ::-1]
+                    # cv2.imwrite("/paddle/inference_results/sk_crop_4.jpg", dst_show[:, :, ::-1])
+                    # out_dict = {"im_type": "extra", "ext_key": "AMTN", "image": crop_4}
+                    # out_list.append(out_dict)
+
                     dst = img[int(0 * hight):int(0.11 * hight), int(0 * width):int(0.08 * width)]
                     dst_show = dst[..., ::-1]
                     cv2.imwrite("/paddle/inference_results/sk_crop.jpg", dst_show[:, :, ::-1])
@@ -457,6 +618,32 @@ class DetOp(Op):
                     if boximg["ext_key"] == 'INV_NO1':
                         self.det_preprocess = Sequential([
                             DetResizeForTest(resize_long=150), Div(255),
+                            Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                                (2, 0, 1))
+                        ])
+                        self.post_func = DBPostProcess({
+                            "thresh": 0.3,
+                            "box_thresh": 0.5,
+                            "max_candidates": 1000,
+                            "unclip_ratio": 1.6,
+                            "min_size": 1
+                        })
+                    if boximg["ext_key"] == 'UNINO':
+                        self.det_preprocess = Sequential([
+                            DetResizeForTest(resize_long=640), Div(255),
+                            Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
+                                (2, 0, 1))
+                        ])
+                        self.post_func = DBPostProcess({
+                            "thresh": 0.3,
+                            "box_thresh": 0.5,
+                            "max_candidates": 1000,
+                            "unclip_ratio": 1.6,
+                            "min_size": 1
+                        })
+                    if boximg["ext_key"] == 'AMTN_NET' or boximg["ext_key"] == 'TAX' or boximg["ext_key"] == 'AMTN':
+                        self.det_preprocess = Sequential([
+                            DetResizeForTest(resize_long=640), Div(255),
                             Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), Transpose(
                                 (2, 0, 1))
                         ])
@@ -905,6 +1092,7 @@ class RecOp(Op):
                 print(str(res_text))
                 if self.rec_dict_list[i]['im_type'] == 'extra':
                     res['ext_key'] = self.rec_dict_list[i]['ext_key']
+                    print(str(score))
                 else:
                     res['mask_list'] = str(self.rec_dict_list[i]['mask_list'])
                     image = self.raw_im[..., ::-1]
